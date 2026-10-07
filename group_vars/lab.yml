@@ -1,0 +1,11 @@
+---
+# Base directory for application files on the target host.
+host_prep_app_base_dir: /opt/lab
+
+# Timezone of the target host.
+host_prep_timezone: Europe/Warsaw
+
+# Podman settings.
+podman_enable_socket: true          # Docker-compatible API socket
+podman_install_docker_shim: true    # provides a `docker` CLI alias
+podman_compose_from_pip: false      # true = newest podman-compose from PyPI

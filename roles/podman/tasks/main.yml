@@ -1,0 +1,64 @@
+---
+# 02 - Podman runtime
+
+- name: "[02.1.0] Install Podman packages"
+  when: podman_install_packages | bool
+  block:
+    - name: "[02.1.1] Install Podman packages"
+      ansible.builtin.apt:
+        name: "{{ podman_packages }}"
+        state: present
+
+    - name: "[02.1.2] Install Docker CLI shim (podman-docker)"
+      ansible.builtin.apt:
+        name: podman-docker
+        state: present
+      when: podman_install_docker_shim | bool
+
+    - name: "[02.2.1] Install podman-compose from apt"
+      ansible.builtin.apt:
+        name: podman-compose
+        state: present
+      when: not (podman_compose_from_pip | bool)
+
+    - name: "[02.2.2] Install podman-compose from PyPI"
+      ansible.builtin.pip:
+        name: podman-compose
+        state: latest
+        extra_args: --break-system-packages
+      when: podman_compose_from_pip | bool
+
+- name: "[02.2.3] Verify Podman binary is available"
+  ansible.builtin.command: which podman
+  register: podman_which
+  changed_when: false
+  failed_when: podman_which.rc != 0
+
+- name: "[02.3.1] Configure short-name registries"
+  ansible.builtin.template:
+    src: registries.conf.j2
+    dest: /etc/containers/registries.conf.d/10-unqualified-search.conf
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: "[02.4.1] Enable Podman API socket"
+  ansible.builtin.systemd:
+    name: podman.socket
+    enabled: true
+    state: started
+  when: podman_enable_socket | bool
+
+- name: "[02.4.2] Enable podman-restart service (restart=always containers after reboot)"
+  ansible.builtin.systemd:
+    name: podman-restart.service
+    enabled: true
+
+- name: "[02.5.1] Read Podman version"
+  ansible.builtin.command: podman version --format "{{ '{{' }}.Client.Version{{ '}}' }}"
+  register: podman_version_out
+  changed_when: false
+
+- name: "[02.5.2] Show Podman version"
+  ansible.builtin.debug:
+    msg: "Podman {{ podman_version_out.stdout }} is ready."

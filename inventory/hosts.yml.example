@@ -1,0 +1,18 @@
+---
+# Copy to hosts.yml and adjust addresses and users.
+# "dev" hosts start from a bare Debian -> run bootstrap.yml first.
+# "prod" hosts already have Podman and Ansible -> run site.yml only.
+all:
+  children:
+    lab:
+      children:
+        dev:
+          hosts:
+            dev-host:
+              ansible_host: 10.0.1.50
+              ansible_user: root
+        prod:
+          hosts:
+            prod-host:
+              ansible_host: 10.0.1.60
+              ansible_user: root

@@ -1,0 +1,3 @@
+# {{ ansible_managed }}
+# Short-name resolution for images without a registry prefix.
+unqualified-search-registries = [{% for r in podman_unqualified_search_registries %}"{{ r }}"{% if not loop.last %}, {% endif %}{% endfor %}]

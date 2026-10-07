@@ -1,0 +1,75 @@
+---
+# Bootstrap for bare Debian hosts (dev): Python, base tools, Ansible and Podman.
+# Production hosts already have Podman and Ansible and are excluded by default.
+#
+# Remote:  ansible-playbook bootstrap.yml
+# Local:   sudo ./scripts/bootstrap-local.sh
+- name: Bootstrap bare Debian hosts
+  hosts: "{{ bootstrap_target | default('dev') }}"
+  become: true
+  gather_facts: false
+
+  vars:
+    bootstrap_packages:
+      - python3
+      - python3-apt
+      - python3-pip
+      - python3-venv
+      - sudo
+      - curl
+      - git
+      - ca-certificates
+      - gnupg
+      - unzip
+      - jq
+      - openssh-server
+    bootstrap_ansible_packages:
+      - ansible
+      - ansible-lint
+      - yamllint
+
+  pre_tasks:
+    # Bare images may lack Python, so the first step uses the raw module.
+    - name: "[00.1.1] Ensure Python 3 is present (raw)"
+      ansible.builtin.raw: >-
+        test -x /usr/bin/python3 ||
+        (apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3 python3-apt)
+      register: bootstrap_python_raw
+      changed_when: "'Setting up python3' in bootstrap_python_raw.stdout"
+
+    - name: "[00.1.2] Gather facts"
+      ansible.builtin.setup:
+
+    - name: "[00.1.3] Assert Debian-based host"
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == "Debian"
+        fail_msg: "bootstrap.yml supports Debian/Ubuntu only."
+
+  tasks:
+    - name: "[00.2.1] Update apt cache"
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: "[00.2.2] Install bootstrap packages"
+      ansible.builtin.apt:
+        name: "{{ bootstrap_packages }}"
+        state: present
+
+    - name: "[00.3.1] Install Ansible tooling"
+      ansible.builtin.apt:
+        name: "{{ bootstrap_ansible_packages }}"
+        state: present
+
+    - name: "[00.3.2] Read Ansible version"
+      ansible.builtin.command: ansible --version
+      register: bootstrap_ansible_version
+      changed_when: false
+
+    - name: "[00.3.3] Show Ansible version"
+      ansible.builtin.debug:
+        msg: "{{ bootstrap_ansible_version.stdout_lines | first }}"
+
+  roles:
+    - role: podman

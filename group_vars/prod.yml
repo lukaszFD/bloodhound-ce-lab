@@ -1,0 +1,3 @@
+---
+# Production hosts already ship Podman and Ansible - do not touch packages there.
+podman_install_packages: false

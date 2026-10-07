@@ -1,0 +1,13 @@
+---
+host_prep_packages:
+  - curl
+  - git
+  - ca-certificates
+  - python3-pip
+  - python3-venv
+  - unzip
+  - jq
+  - htop
+
+host_prep_app_base_dir: /opt/lab
+host_prep_timezone: Europe/Warsaw

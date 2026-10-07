@@ -1,0 +1,3 @@
+---
+# Dev hosts start bare - bootstrap.yml and site.yml install everything.
+podman_install_packages: true

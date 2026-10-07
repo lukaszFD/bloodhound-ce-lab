@@ -1,0 +1,12 @@
+---
+# Main entry point: prepares the target host and the Podman runtime.
+- name: Prepare lab host with Podman
+  hosts: "{{ lab_target | default('lab') }}"
+  become: true
+  gather_facts: true
+
+  roles:
+    - role: host_prep
+    - role: podman
+    # Add your application role here, e.g.:
+    # - role: app

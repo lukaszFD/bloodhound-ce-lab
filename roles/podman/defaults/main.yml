@@ -1,0 +1,16 @@
+---
+podman_packages:
+  - podman
+  - uidmap
+  - slirp4netns
+  - fuse-overlayfs
+  - containernetworking-plugins
+
+podman_install_packages: true
+podman_enable_socket: true
+podman_install_docker_shim: true
+podman_compose_from_pip: false
+
+# Registries used to resolve short image names (e.g. "postgres:16").
+podman_unqualified_search_registries:
+  - docker.io
